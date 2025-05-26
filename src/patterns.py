@@ -1,0 +1,56 @@
+from typing import List
+import numpy as np
+
+def _ascii_art_to_matrix(ascii_art: str) -> np.ndarray:
+    """
+    Convert a 5-line ASCII string into a 5x5 boolean matrix.
+    '*' becomes True; all other characters become False.
+    """
+    lines = ascii_art.strip('\n').splitlines()
+    if len(lines) != 5:
+        raise ValueError("ASCII art must be exactly 5 lines.")
+
+    matrix = np.zeros((5, 5), dtype=bool)
+    for r, line in enumerate(lines):
+        line = line.ljust(5)[:5]  # Ensure line is exactly 5 chars
+        for c, ch in enumerate(line):
+            matrix[r, c] = (ch == '*')
+    return matrix
+
+def ascii_art_to_pattern(ascii_art: str) -> np.ndarray:
+    """
+    Convert a 5-line ASCII string into a 15x1 boolean array.
+    '*' becomes True; all other characters become False.
+    """
+    return _ascii_art_to_matrix(ascii_art).reshape(-1, 1)
+
+
+def _parse_ascii_chars(filename):
+    char_matrices = {}
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if len(line) == 1 and line.isalpha():
+            char = line
+            i += 1
+            ascii_block = ''.join(lines[i:i+5])
+            i += 5
+            char_matrices[char] = _ascii_art_to_matrix(ascii_block)
+        else:
+            i += 1
+
+    return char_matrices
+
+char_matrices = _parse_ascii_chars('data/patterns.txt')
+
+def get_patterns(chars: List[str]) -> np.ndarray:
+    # Create a list of reshaped column vectors
+    columns = [char_matrices[char].reshape(-1, 1) for char in chars]
+    
+    # Concatenate column vectors horizontally
+    patterns = np.hstack(columns)
+    return patterns
+
