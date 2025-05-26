@@ -14,7 +14,6 @@ class PCA():
 
         self.covariance = (self.standardized.T @ self.standardized) / x_dim
 
-        # Eigen decomposition
         self.eigenvalues, self.eigenvectors = np.linalg.eigh(self.covariance)
 
         # Sort eigenvalues and eigenvectors in descending order
