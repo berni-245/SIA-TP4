@@ -7,7 +7,7 @@ class PCA():
         x_dim, y_dim = inputs.shape  
 
         self.means = np.mean(inputs, axis=0)
-        self.stds = np.std(inputs, axis=0, ddof=0)
+        self.stds = np.std(inputs, axis=0)
 
         # Standardize
         self.standardized = (inputs - self.means) / self.stds

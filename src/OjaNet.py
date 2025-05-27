@@ -16,7 +16,7 @@ class OjaNet():
         self.weights = np.random.uniform(0, 1, inputs.shape[1])
 
         self.means = np.mean(inputs, axis=0)
-        self.stds = np.std(inputs, axis=0, ddof=0)
+        self.stds = np.std(inputs, axis=0)
 
         # Standardize
         self.inputs = (inputs - self.means) / self.stds
