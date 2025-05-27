@@ -8,6 +8,7 @@ class PCA():
 
         self.means = np.mean(inputs, axis=0)
         self.stds = np.std(inputs, axis=0)
+        self.stds[self.stds == 0] = 1  
 
         # Standardize
         self.standardized = (inputs - self.means) / self.stds
