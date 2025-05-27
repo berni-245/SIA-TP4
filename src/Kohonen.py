@@ -58,27 +58,20 @@ class KohonenNet():
         epoch_radius = self.radius / self.current_epoch + 1 # TODO: look for better radio update function, must converge to 1
 
         for input_vector in self.inputs:
-            bmu_i, bmu_j = self.find_bmu(input_vector)
+            best_neuron_i, best_neuron_j = self.find_best_neuron(input_vector)
 
             self.radius = epoch_radius  
-            neighbors = self.get_neighbors(bmu_i, bmu_j)
+            neighbors = self.get_neighbors(best_neuron_i, best_neuron_j)
 
             for i, j in neighbors:
                 self.weights[i, j] += epoch_lr * (input_vector - self.weights[i, j])
     
-    def find_bmu(self, input_vector: NDArray[np.float64]) -> Tuple[int, int]:
-        min_dist = float('inf')
-        bmu = (0, 0)
+    def find_best_neuron(self, input_vector: NDArray[np.float64]) -> Tuple[int, int]:
+        diffs = self.weights - input_vector  
+        dists = np.linalg.norm(diffs, axis=2)
 
-        for i in range(self.k):
-            for j in range(self.k):
-                dist = np.linalg.norm(input_vector - self.weights[i, j])
-                if dist < min_dist:
-                    min_dist = dist
-                    bmu = (i, j)
-
-        return bmu
-
+        best_neuron_indexes = np.unravel_index(np.argmin(dists), dists.shape)
+        return int(best_neuron_indexes[0]), int(best_neuron_indexes[1])
 
     def get_neighbors(self, center_row: int, center_col: int) -> List[Tuple[int, int]]:
         neighbors = []
