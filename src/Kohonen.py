@@ -12,25 +12,28 @@ class KohonenNet():
         initial_radius: int | None = None,
         decrease_radius: bool = True,
         ini_learn_rate: float = 0.5,
-        decrease_learn_rate: bool = True,            
+        decrease_learn_rate: bool = True,
+        labels: List[str] | None = None
     ) -> None:
         self.var_count = inputs.shape[1]
         self.k = k_grid_dimension
         self.max_epochs = max_epochs
-        
+
         self.ini_learn_rate = ini_learn_rate
         self.decrease_learn_rate = decrease_learn_rate
 
         self.neuron_count = self.k * self.k
         self.initial_radius = initial_radius if initial_radius is not None else self.neuron_count
-        self.radius = self.initial_radius  
+        self.radius = self.initial_radius
         self.decrease_radius = decrease_radius
 
         # Standardize inputs
         self.means = np.mean(inputs, axis=0)
         self.stds = np.std(inputs, axis=0)
-        self.stds[self.stds == 0] = 1  
+        self.stds[self.stds == 0] = 1
         self.inputs = (inputs - self.means) / self.stds
+
+        self.labels = labels
 
         # Use inputs as weights or initialize them random
         if use_weights_from_inputs:
@@ -48,12 +51,21 @@ class KohonenNet():
         else:
             flat_weights = np.random.uniform(0, 1, size=(self.neuron_count, self.var_count))
 
-        self.weights = flat_weights.reshape((self.k, self.k, self.var_count)) 
+        activations = []
+        for i in range(len(flat_weights)):
+            info = {}
+            info["total_activations"] = 0
+            if labels is not None:
+                for label in labels:
+                    info[label] = 0
+            activations.append(info)
+        self.activations = np.array(activations).reshape((self.k, self.k))
+        self.weights = flat_weights.reshape((self.k, self.k, self.var_count))
         self.current_epoch = 0
 
     def has_next(self) -> bool:
         return self.current_epoch < self.max_epochs
-    
+
     def next_epoch(self):
         if not self.has_next():
             raise Exception("Max epochs reached")
@@ -69,18 +81,20 @@ class KohonenNet():
         else:
             epoch_radius = self.initial_radius
 
-
-        for input_vector in self.inputs:
+        for data_idx, input_vector in enumerate(self.inputs):
             best_neuron_i, best_neuron_j = self._find_best_neuron(input_vector)
+            self.activations[best_neuron_i][best_neuron_j]["total_activations"] += 1
+            if self.labels is not None:
+                self.activations[best_neuron_i][best_neuron_j][self.labels[data_idx]] += 1
 
-            self.radius = epoch_radius  
+            self.radius = epoch_radius
             neighbors = self._get_neighbors(best_neuron_i, best_neuron_j)
 
             for i, j in neighbors:
                 self.weights[i, j] += epoch_lr * (input_vector - self.weights[i, j])
-    
+
     def _find_best_neuron(self, input_vector: NDArray[np.float64]) -> Tuple[int, int]:
-        diffs = self.weights - input_vector  
+        diffs = self.weights - input_vector
         dists = np.linalg.norm(diffs, axis=2)
 
         best_neuron_indexes = np.unravel_index(np.argmin(dists), dists.shape)
