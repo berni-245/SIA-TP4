@@ -23,7 +23,7 @@ class KohonenNet():
         self.decrease_learn_rate = decrease_learn_rate
 
         self.neuron_count = self.k * self.k
-        self.initial_radius = initial_radius if initial_radius is not None else self.neuron_count
+        self.initial_radius = initial_radius if initial_radius is not None else (self.k / 2)
         self.radius = self.initial_radius
         self.decrease_radius = decrease_radius
 
@@ -55,7 +55,7 @@ class KohonenNet():
         for i in range(len(flat_weights)):
             info = {}
             info["total_activations"] = 0
-            if labels is not None:
+            if labels is not None: 
                 for label in labels:
                     info[label] = 0
             activations.append(info)
