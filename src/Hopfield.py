@@ -28,10 +28,9 @@ class HopfieldNN():
                     print(f"Columns {i} and {j} are not orthogonal. Dot product = {dot}")
 
         self.weights = (1/self.pattern_length) * (self.patterns @ self.patterns.T)
-        # self.query_pattern: Union[NDArray[np.int8], None] = None
         self.max_iters = max_iters
 
-    def find_pattern(self, pattern: NDArray[np.bool_]) -> None:
+    def set_query_pattern(self, pattern: NDArray[np.bool_]):
         """
         Accepts a boolean pattern, ensures it's a 1D column vector.
         
@@ -53,26 +52,51 @@ class HopfieldNN():
                 f"Pattern length mismatch: expected {self.pattern_length}, got {pattern.shape[0]}"
             pattern = pattern.reshape(-1, 1)
 
-        query_pattern = np.where(pattern, 1, -1).astype(np.int8)
-        print(query_pattern)
-        query_pattern_prev = np.empty_like(query_pattern)
-        for i in range(self.max_iters):
-            query_pattern_prev = query_pattern.copy()
-            query_pattern = self._update_pattern(query_pattern)
-            print(i)
-            print(query_pattern)
-            print()
-            if np.array_equal(query_pattern, query_pattern_prev):
+        self.query_pattern = np.where(pattern, 1, -1).astype(np.int8)
+        self.query_pattern_prev = np.empty_like(self.query_pattern)
+
+    def pattern_next(self) -> None:
+        self.query_pattern_prev = self.query_pattern
+        self.query_pattern = np.sign(self.weights @ self.query_pattern)
+
+    def find_pattern(self):
+        for _ in range(self.max_iters):
+            self.pattern_next()
+            if self.pattern_converged():
                 break
         else:
             print("Max iterations reached without finding a pattern match")
             return
+        
+        match_idx = self.pattern_match()
+        if match_idx < 0:
+            print("No matching column found.")
+        else:
+            print(f"Match found in column {match_idx}")
+        
+    def pattern_converged(self) -> bool:
+        return np.array_equal(self.query_pattern, self.query_pattern_prev)
 
+    def pattern_match(self) -> int:
         for col_index in range(self.patterns.shape[1]):
-            if np.array_equal(query_pattern.flatten(), self.patterns[:, col_index]):
-                print(f"Match found in column {col_index}")
-                return
-        print("No matching column found.")
+            if np.array_equal(self.query_pattern.flatten(), self.patterns[:, col_index]):
+                return col_index
+        return -1
 
-    def _update_pattern(self, pattern: NDArray[np.int8]):
-        return np.sign(self.weights @ pattern)
+    def energy(self):
+        S = self.query_pattern
+        return float(-0.5 * S.T @ self.weights @ S)
+
+    def pattern_to_ascii(self, matrix_25x1: np.ndarray) -> str:
+        """
+        Converts a 25x1 numpy array of -1 and 1 into a 5x5 ASCII string,
+        where -1 maps to ' ' (space) and 1 maps to '*'.
+        
+        Returns the ASCII representation as a single string with newlines.
+        """
+        assert matrix_25x1.shape == (25, 1) or matrix_25x1.shape == (25,), "Input must be a 25x1 or 25-length array"
+        
+        arr = matrix_25x1.flatten()
+        chars = ['*' if x == 1 else ' ' for x in arr]
+        rows = [''.join(chars[i*5:(i+1)*5]) for i in range(5)]
+        return '\n'.join(rows)
