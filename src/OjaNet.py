@@ -6,7 +6,7 @@ class OjaNet():
             self,
             inputs: NDArray[np.float64],
             max_epochs=1000,
-            ini_learn_rate: float = 0.5,
+            ini_learn_rate: float = 0.01,
             decrease_learn_rate: bool = True,            
         ) -> None: 
         self.ini_learn_rate = ini_learn_rate
@@ -30,11 +30,13 @@ class OjaNet():
         if not self.has_next():
             raise Exception("Max epochs were reached")
         self.current_epoch += 1
+
         if self.decrease_learn_rate:
             epoch_learn_rate = self.ini_learn_rate / self.current_epoch
         else:
             epoch_learn_rate = self.ini_learn_rate
+
         for row in self.inputs:
             output = np.dot(row, self.weights)
-            self.weights += epoch_learn_rate * (output*row - output**2 * self.weights)
+            self.weights += epoch_learn_rate * (output * row - output**2 * self.weights)
         return self.weights
