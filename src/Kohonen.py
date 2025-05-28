@@ -9,18 +9,22 @@ class KohonenNet():
         k_grid_dimension: int,
         use_weights_from_inputs: bool,
         max_epochs=1000,
-        initial_radius: int | None = None, # TODO: add possibility to start with fixed learn rate and fixed radius
-        initial_learn_rate: float = 0.5,
+        initial_radius: int | None = None,
+        decrease_radius: bool = True,
+        ini_learn_rate: float = 0.5,
+        decrease_learn_rate: bool = True,            
     ) -> None:
         self.var_count = inputs.shape[1]
         self.k = k_grid_dimension
         self.max_epochs = max_epochs
-        self.learn_rate = initial_learn_rate
+        
+        self.ini_learn_rate = ini_learn_rate
+        self.decrease_learn_rate = decrease_learn_rate
+
         self.neuron_count = self.k * self.k
-        if initial_radius is None:
-            self.radius = self.neuron_count
-        else:
-            self.radius = initial_radius
+        self.initial_radius = initial_radius if initial_radius is not None else self.neuron_count
+        self.radius = self.initial_radius  
+        self.decrease_radius = decrease_radius
 
         # Standardize inputs
         self.means = np.mean(inputs, axis=0)
@@ -28,6 +32,7 @@ class KohonenNet():
         self.stds[self.stds == 0] = 1  
         self.inputs = (inputs - self.means) / self.stds
 
+        # Use inputs as weights or initialize them random
         if use_weights_from_inputs:
             input_count = self.inputs.shape[0]
 
@@ -54,26 +59,34 @@ class KohonenNet():
             raise Exception("Max epochs reached")
 
         self.current_epoch += 1
-        epoch_lr = self.learn_rate / self.current_epoch
-        epoch_radius = self.radius / self.current_epoch + 1 # TODO: look for better radio update function, must converge to 1
+        if self.decrease_learn_rate:
+            epoch_lr = self.ini_learn_rate / self.current_epoch
+        else:
+            epoch_lr = self.ini_learn_rate
+        if self.decrease_radius:
+            tau = self.max_epochs / np.log(self.initial_radius)
+            epoch_radius = 1 + (self.initial_radius - 1) * np.exp(-self.current_epoch / tau)
+        else:
+            epoch_radius = self.initial_radius
+
 
         for input_vector in self.inputs:
-            best_neuron_i, best_neuron_j = self.find_best_neuron(input_vector)
+            best_neuron_i, best_neuron_j = self._find_best_neuron(input_vector)
 
             self.radius = epoch_radius  
-            neighbors = self.get_neighbors(best_neuron_i, best_neuron_j)
+            neighbors = self._get_neighbors(best_neuron_i, best_neuron_j)
 
             for i, j in neighbors:
                 self.weights[i, j] += epoch_lr * (input_vector - self.weights[i, j])
     
-    def find_best_neuron(self, input_vector: NDArray[np.float64]) -> Tuple[int, int]:
+    def _find_best_neuron(self, input_vector: NDArray[np.float64]) -> Tuple[int, int]:
         diffs = self.weights - input_vector  
         dists = np.linalg.norm(diffs, axis=2)
 
         best_neuron_indexes = np.unravel_index(np.argmin(dists), dists.shape)
         return int(best_neuron_indexes[0]), int(best_neuron_indexes[1])
 
-    def get_neighbors(self, center_row: int, center_col: int) -> List[Tuple[int, int]]:
+    def _get_neighbors(self, center_row: int, center_col: int) -> List[Tuple[int, int]]:
         neighbors = []
         radius_int = int(np.ceil(self.radius))
 
