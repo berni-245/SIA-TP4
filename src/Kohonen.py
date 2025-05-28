@@ -76,8 +76,11 @@ class KohonenNet():
         else:
             epoch_lr = self.ini_learn_rate
         if self.decrease_radius:
-            tau = self.max_epochs / (np.log(self.initial_radius) + 1)
-            epoch_radius = 1 + (self.initial_radius - 1) * np.exp(-self.current_epoch / tau)
+            if self.initial_radius <= 1: # already in the minimum
+                epoch_radius = 1
+            else:
+                tau = self.max_epochs / (np.log(self.initial_radius))
+                epoch_radius = 1 + (self.initial_radius - 1) * np.exp(-self.current_epoch / tau)
         else:
             epoch_radius = self.initial_radius
 
