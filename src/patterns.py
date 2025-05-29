@@ -24,6 +24,19 @@ def ascii_art_to_pattern(ascii_art: str) -> np.ndarray:
     """
     return _ascii_art_to_matrix(ascii_art).reshape(-1, 1)
 
+def pattern_to_ascii(matrix_25x1: np.ndarray) -> str:
+    """
+    Converts a 25x1 numpy array of -1 and 1 into a 5x5 ASCII string,
+    where -1 maps to ' ' (space) and 1 maps to '*'.
+    
+    Returns the ASCII representation as a single string with newlines.
+    """
+    assert matrix_25x1.shape == (25, 1) or matrix_25x1.shape == (25,), "Input must be a 25x1 or 25-length array"
+    
+    arr = matrix_25x1.flatten()
+    chars = ['*' if x == 1 else ' ' for x in arr]
+    rows = [''.join(chars[i*5:(i+1)*5]) for i in range(5)]
+    return '\n'.join(rows)
 
 def _parse_ascii_chars(filename):
     char_matrices = {}
