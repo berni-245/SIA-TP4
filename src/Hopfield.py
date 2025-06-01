@@ -60,6 +60,46 @@ class HopfieldNN():
         updated = np.sign(self.weights @ self.query_pattern)
         self.query_pattern = np.where(updated == 0, self.query_pattern_prev, updated)
 
+    def _pattern_next_inefficient(self) -> np.ndarray:
+        self.query_pattern_prev = self.query_pattern.copy()
+        updates = []
+
+        for i in range(self.pattern_length):
+            self.query_pattern_prev[i] = self.query_pattern[i]
+            h = 0
+            for j in range(self.pattern_length):
+                h += self.weights[i, j] * self.query_pattern[j]
+            if h != 0:
+                self.query_pattern[i] = np.sign(h)
+
+            updates.append(self.query_pattern.copy())
+
+        return np.column_stack(updates)  # shape: (pattern_length, pattern_length)
+
+    def run_until_converged_with_history(self) -> np.ndarray:
+        full_history = []
+
+        for _ in range(self.max_iters):
+            update_matrix = self._pattern_next_inefficient()
+            full_history.append(update_matrix)
+
+            if self.pattern_converged():
+                break
+        else:
+            print("Max iterations reached without finding a pattern match")
+            return np.array([])
+
+        match_idx = self.pattern_match()
+        if match_idx < 0:
+            print("No matching column found.")
+        else:
+            print(f"Match found in column {match_idx}")
+
+        # Concatenate horizontally: final shape (pattern_length, total_updates)
+        history_matrix = np.hstack(full_history)
+
+        return np.where(history_matrix == 1, True, False)
+
     def find_pattern(self):
         for _ in range(self.max_iters):
             self.pattern_next()
