@@ -57,7 +57,8 @@ class HopfieldNN():
 
     def pattern_next(self) -> None:
         self.query_pattern_prev = self.query_pattern
-        self.query_pattern = np.sign(self.weights @ self.query_pattern)
+        updated = np.sign(self.weights @ self.query_pattern)
+        self.query_pattern = np.where(updated == 0, self.query_pattern_prev, updated)
 
     def find_pattern(self):
         for _ in range(self.max_iters):
