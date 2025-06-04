@@ -142,26 +142,27 @@ def pattern_history_to_gif(
 
 def add_gaussian_noise_to_pattern(pattern: np.ndarray, noise_level: float) -> np.ndarray:
     """
-    Applies bit-flip noise to a boolean column vector pattern.
+    Applies bit-flip noise to a boolean vector (row, column, or flat) of 25 elements.
     
     Args:
-        pattern (np.ndarray): A boolean column vector of shape (N, 1).
+        pattern (np.ndarray): A boolean vector of shape (25,), (25, 1), or (1, 25).
         noise_level (float): A float from 0 to 1 indicating the proportion of bits to flip.
         
     Returns:
-        np.ndarray: A noisy copy of the original pattern with some bits flipped.
+        np.ndarray: A noisy copy of the original pattern with some bits flipped, same shape as input.
     """
     assert 0 <= noise_level <= 1, "noise_level must be between 0 and 1"
-    assert pattern.ndim == 2 and pattern.shape[1] == 1, "pattern must be a column vector"
     assert pattern.dtype == bool, "pattern must be of boolean dtype"
+    assert pattern.shape in [(25,), (25, 1), (1, 25)], "pattern must be shape (25,), (25,1), or (1,25)"
 
-    num_flips = int(np.round(noise_level * pattern.shape[0]))
+    num_flips = int(np.round(noise_level * 25))
     if num_flips == 0:
         return pattern.copy()
 
-    flip_indices = np.random.choice(pattern.shape[0], num_flips, replace=False)
+    flat = pattern.ravel()  # get 1D view of 25 elements
+    flip_indices = np.random.choice(25, num_flips, replace=False)
 
-    noisy = pattern.copy()
-    noisy[flip_indices, 0] = ~noisy[flip_indices, 0]  # flip bits
+    noisy_flat = flat.copy()
+    noisy_flat[flip_indices] = ~noisy_flat[flip_indices]
 
-    return noisy
+    return noisy_flat.reshape(pattern.shape)
