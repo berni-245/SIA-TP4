@@ -106,15 +106,12 @@ class HopfieldNN():
             if self.pattern_converged():
                 break
         else:
-            print("Max iterations reached without finding a pattern match")
-            return -1
+            return -1 # Max iterations reached without finding a pattern match
         
         match_idx = self.pattern_match()
         if match_idx < 0:
-            print("No matching column found.")
             return -2 # Found an spurious pattern
         else:
-            print(f"Match found in column {match_idx}")
             return match_idx
         
     def pattern_converged(self) -> bool:
