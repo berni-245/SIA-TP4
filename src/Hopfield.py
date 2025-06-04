@@ -21,11 +21,11 @@ class HopfieldNN():
         self.pattern_length = patterns.shape[0]
         self.patterns_count = patterns.shape[1]
 
-        for i in range(self.patterns_count):
-            for j in range(i + 1, self.patterns_count):
-                dot = np.dot(self.patterns[:, i], self.patterns[:, j])
-                if dot != 0:
-                    print(f"Columns {i} and {j} are not orthogonal. Dot product = {dot}")
+        # for i in range(self.patterns_count):
+        #     for j in range(i + 1, self.patterns_count):
+        #         dot = np.dot(self.patterns[:, i], self.patterns[:, j])
+        #         if dot != 0:
+        #             print(f"Columns {i} and {j} are not orthogonal. Dot product = {dot}")
 
         self.weights = (1/self.pattern_length) * (self.patterns @ self.patterns.T)
         self.max_iters = max_iters
