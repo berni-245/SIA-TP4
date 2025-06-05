@@ -78,7 +78,22 @@ class HopfieldNN():
                 if n_convergence == 0:
                     break
 
-        return np.column_stack(updates)  # shape: (pattern_length, pattern_length)
+        return np.column_stack(updates) # shape: (pattern_length, pattern_length)
+
+    def run_until_converged(self, n_convergence: None | int = None) -> int:
+        gen_count = 0
+        for _ in range(self.max_iters):
+            gen_count += self._pattern_next_inefficient(n_convergence).shape[1]
+            if self.pattern_converged():
+                break
+        else:
+            return -1
+
+        match_idx = self.pattern_match()
+        if match_idx < 0:
+            return -2
+        else:
+            return gen_count
 
     def run_until_converged_with_history(self, n_convergence: None | int = None) -> np.ndarray:
         full_history = []
