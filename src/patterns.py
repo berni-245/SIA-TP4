@@ -131,11 +131,20 @@ def pattern_history_to_gif(
 
         frames.append(img)
 
-    # Save animated gif
-    frames[0].save(
+    extra_delay_frames = 5  # Number of times to repeat the first frame
+
+    # Duplicate first frame
+    first_frame = frames[0]
+    delay_frames = [first_frame.copy() for _ in range(extra_delay_frames)]
+
+    # Combine
+    all_frames = delay_frames + frames
+
+    # Save with consistent duration
+    all_frames[0].save(
         gif_path,
         save_all=True,
-        append_images=frames[1:],
+        append_images=all_frames[1:],
         duration=frame_duration_ms,
         loop=0
     )
