@@ -1,0 +1,7 @@
+{
+    "net_patterns":["g", "R", "T", "V"],
+    "max_epochs": 100,
+    "query_letter": "R",
+    "gauss_noice": 0.1,
+    "output_file": "./output.gif"
+}

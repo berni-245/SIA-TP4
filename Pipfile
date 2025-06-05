@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 numpy = "*"
 pillow = "*"
+matplotlib = "*"
+pandas = "*"
 
 [dev-packages]
 

@@ -1,0 +1,11 @@
+{
+    "k_grid_dimension": 4,
+    "use_weights_from_inputs": true,
+    "max_epochs": 100,
+    "initial_radius": 2,
+    "decrease_radius": true,
+    "initial_learn_rate": 0.5,
+    "decrease_learn_rate": true,
+    "plot_type": "final_entries",
+    "variable_type": "pop.growth"
+}

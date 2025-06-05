@@ -1,0 +1,5 @@
+{
+    "max_epochs": 1000,
+    "ini_learn_rate": 0.01,
+    "decrease_learn_rate": true
+}
