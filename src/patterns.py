@@ -21,7 +21,7 @@ def _ascii_art_to_matrix(ascii_art: str) -> np.ndarray:
 
 def ascii_art_to_pattern(ascii_art: str) -> np.ndarray:
     """
-    Convert a 5-line ASCII string into a 15x1 boolean array.
+    Convert a 5-line ASCII string into a 25x1 boolean array.
     '*' becomes True; all other characters become False.
     """
     return _ascii_art_to_matrix(ascii_art).reshape(-1, 1)

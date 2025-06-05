@@ -1,21 +1,44 @@
 import numpy as np
 from src.Hopfield import HopfieldNN
-from src.patterns import ascii_art_to_pattern, get_patterns, pattern_history_to_gif
+import src.patterns as pat
 
-pattern_chars = ['G', 'R', 'T', 'V']
 # pattern_chars = ['H', 'M', 'N', 'W']
-hopfield = HopfieldNN(get_patterns(pattern_chars), 100)
+pattern_chars = ['G', 'R', 'T', 'V']
+hopfield = HopfieldNN(pat.get_patterns(pattern_chars), 100)
 
 # G
+# query_pattern = """
+#  ****
+# *    
+# *  **
+# *   *
+#  *** 
+# """
+# query_pattern = """
+#  ****
+# ** **
+# ** **
+# * * *
+#  ****
+# """
+
+# R
 query_pattern = """
- ****
-** **
-** **
-* * *
- ****
+**** 
+*   *
+**** 
+*  * 
+*   *
 """
 
 # T
+# query_pattern = """
+# *****
+#   *  
+#   *  
+#   *  
+#   *  
+# """
 # query_pattern = """
 # *****
 # * * *
@@ -26,6 +49,13 @@ query_pattern = """
  
 # V
 # query_pattern = """
+# *   *
+# *   *
+# *   *
+#  * * 
+#   *  
+# """
+# query_pattern = """
 # *****
 # * * *
 # *   *
@@ -33,13 +63,15 @@ query_pattern = """
 # * *
 # """
 
-hopfield.set_query_pattern(ascii_art_to_pattern(query_pattern))
-pattern_history = hopfield.run_until_converged_with_history()
+query_pattern = pat.add_gaussian_noise_to_pattern(pat.ascii_art_to_pattern(query_pattern), 0.3)
 
-pattern_history_to_gif(pattern_history, "output.gif", frame_duration_ms=100, expected_pattern_char='G')
+hopfield.set_query_pattern(query_pattern)
+pattern_history = hopfield.run_until_converged_with_history(4)
+
+pat.pattern_history_to_gif(pattern_history, "./results/output.gif", frame_duration_ms=100, expected_pattern_char='R')
  
 # pattern_evolution = []
-# hopfield.set_query_pattern(ascii_art_to_pattern(query_pattern))
+# hopfield.set_query_pattern(query_pattern)
 # pattern_evolution.append(hopfield.query_pattern)
 # for _ in range(hopfield.max_iters):
 #     print(hopfield.energy())
@@ -59,6 +91,6 @@ pattern_history_to_gif(pattern_history, "output.gif", frame_duration_ms=100, exp
 #
 # for i, pattern in enumerate(pattern_evolution):
 #   print(f'\n\nt: {i}\n')
-#   print(pattern_to_ascii(pattern))
+#   print(pattern_to_ascii(np.where(pattern == 1, True, False)))
 #
 # # print(np.hstack(pattern_evolution))
