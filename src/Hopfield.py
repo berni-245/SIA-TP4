@@ -60,7 +60,7 @@ class HopfieldNN():
         updated = np.sign(self.weights @ self.query_pattern)
         self.query_pattern = np.where(updated == 0, self.query_pattern_prev, updated)
 
-    def _pattern_next_inefficient(self) -> np.ndarray:
+    def _pattern_next_inefficient(self, n_convergence: None | int = None) -> np.ndarray:
         self.query_pattern_prev = self.query_pattern.copy()
         updates = []
 
@@ -73,14 +73,18 @@ class HopfieldNN():
                 self.query_pattern[i] = np.sign(h)
 
             updates.append(self.query_pattern.copy())
+            if n_convergence and h != 0 and self.pattern_converged():
+                n_convergence -= 1
+                if n_convergence == 0:
+                    break
 
         return np.column_stack(updates)  # shape: (pattern_length, pattern_length)
 
-    def run_until_converged_with_history(self) -> np.ndarray:
+    def run_until_converged_with_history(self, n_convergence: None | int = None) -> np.ndarray:
         full_history = []
 
         for _ in range(self.max_iters):
-            update_matrix = self._pattern_next_inefficient()
+            update_matrix = self._pattern_next_inefficient(n_convergence)
             full_history.append(update_matrix)
 
             if self.pattern_converged():
